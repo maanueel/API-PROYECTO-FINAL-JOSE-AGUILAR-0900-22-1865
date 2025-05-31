@@ -1,0 +1,136 @@
+namespace ProyectoFinalProgramacionIII.DataStructures
+{
+
+    public class EntradaHash<TKey, TValue>
+    {
+        public TKey Key { get; set; }
+        public TValue Value { get; set; }
+        public EntradaHash<TKey, TValue> Siguiente { get; set; } // Para manejo de colisiones por encadenamiento
+
+        public EntradaHash(TKey key, TValue value)
+        {
+            Key = key;
+            Value = value;
+            Siguiente = null;
+        }
+    }
+
+    // Implementación de tabla hash con encadenamiento
+    public class TablaHash<TKey, TValue>
+    {
+        private readonly int capacidad;
+        private readonly EntradaHash<TKey, TValue>[] buckets;
+        private int count;
+
+        public TablaHash(int capacidad = 100)
+        {
+            this.capacidad = capacidad;
+            buckets = new EntradaHash<TKey, TValue>[capacidad];
+            count = 0;
+        }
+
+        // Función hash simple usando GetHashCode y módulo
+        private int GetHash(TKey key)
+        {
+            return Math.Abs(key.GetHashCode()) % capacidad;
+        }
+
+        // Insertar o actualizar un valor por clave
+        public void Insertar(TKey key, TValue value)
+        {
+            int index = GetHash(key);
+            EntradaHash<TKey, TValue> actual = buckets[index];
+
+            if (actual == null)
+            {
+                buckets[index] = new EntradaHash<TKey, TValue>(key, value);
+                count++;
+                return;
+            }
+
+            EntradaHash<TKey, TValue> anterior = null;
+            while (actual != null)
+            {
+                if (actual.Key.Equals(key))
+                {
+                    actual.Value = value; // actualiza si clave existe
+                    return;
+                }
+                anterior = actual;
+                actual = actual.Siguiente;
+            }
+
+            anterior.Siguiente = new EntradaHash<TKey, TValue>(key, value);
+            count++;
+        }
+
+        // Buscar un valor por clave
+        public TValue Buscar(TKey key)
+        {
+            int index = GetHash(key);
+            EntradaHash<TKey, TValue> actual = buckets[index];
+
+            while (actual != null)
+            {
+                if (actual.Key.Equals(key))
+                    return actual.Value;
+                actual = actual.Siguiente;
+            }
+
+            throw new KeyNotFoundException("Clave no encontrada en la tabla hash");
+        }
+
+        // Eliminar un valor por clave
+        public bool Eliminar(TKey key)
+        {
+            int index = GetHash(key);
+            EntradaHash<TKey, TValue> actual = buckets[index];
+            EntradaHash<TKey, TValue> anterior = null;
+
+            while (actual != null)
+            {
+                if (actual.Key.Equals(key))
+                {
+                    if (anterior == null)
+                    {
+                        buckets[index] = actual.Siguiente;
+                    }
+                    else
+                    {
+                        anterior.Siguiente = actual.Siguiente;
+                    }
+                    count--;
+                    return true;
+                }
+                anterior = actual;
+                actual = actual.Siguiente;
+            }
+
+            return false; // no encontrado
+        }
+
+        // Verifica si la tabla está vacía
+        public bool EstaVacia()
+        {
+            return count == 0;
+        }
+
+        // Cantidad de elementos almacenados
+        public int Count()
+        {
+            return count;
+        }
+
+        // Limpiar la tabla hash
+        public void Limpiar()
+        {
+            for (int i = 0; i < capacidad; i++)
+            {
+                buckets[i] = null;
+            }
+            count = 0;
+        }
+    }
+
+
+}

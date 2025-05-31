@@ -1,0 +1,35 @@
+using Microsoft.AspNetCore.Mvc;
+using ProyectoFinalProgramacionIII.Services;
+using ProyectoFinalProgramacionIII.Models;
+using System;
+
+namespace ProyectoFinalProgramacionIII.ApiControllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CargaInicialController : ControllerBase
+    {
+        private readonly CargaInicialService cargaInicialService;
+
+        public CargaInicialController(CargaInicialService cargaInicialService)
+        {
+            this.cargaInicialService = cargaInicialService;
+        }
+
+        [HttpPost("cargar")]
+        public IActionResult CargarDatos()
+        {
+            try
+            {
+                cargaInicialService.CargarDatosIniciales(); 
+                
+
+                return Ok("Datos iniciales cargados correctamente.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Error al cargar datos iniciales: {e.Message}");
+            }
+        }
+    }
+}

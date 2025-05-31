@@ -1,0 +1,15 @@
+
+using System;
+using System.Collections.Generic;
+namespace ProyectoFinalProgramacionIII.Models
+{
+    public class EstadoCuenta
+    {
+        public string NumeroTarjeta { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public List<Transaccion> Transacciones { get; set; } = new List<Transaccion>();
+        public decimal SaldoAnterior { get; set; }
+        public decimal SaldoActual { get; set; }
+    }
+}

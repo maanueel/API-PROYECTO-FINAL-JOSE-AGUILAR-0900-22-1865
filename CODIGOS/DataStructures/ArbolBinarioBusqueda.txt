@@ -1,0 +1,225 @@
+using System;
+namespace ProyectoFinalProgramacionIII.DataStructures
+{
+        // Nodo del árbol binario de búsqueda
+        public class NodoBST<TKey, TValue> where TKey : IComparable<TKey>
+        {
+            public TKey Key { get; set; }
+            public TValue Value { get; set; }
+            public NodoBST<TKey, TValue> Izquierdo { get; set; }
+            public NodoBST<TKey, TValue> Derecho { get; set; }
+
+            public NodoBST(TKey key, TValue value)
+            {
+                Key = key;
+                Value = value;
+                Izquierdo = null;
+                Derecho = null;
+            }
+        }
+
+        // Árbol binario de búsqueda genérico con métodos completos
+        public class ArbolBinarioBusqueda<TKey, TValue> where TKey : IComparable<TKey>
+        {
+            private NodoBST<TKey, TValue> raiz;
+
+            public ArbolBinarioBusqueda()
+            {
+                raiz = null;
+            }
+
+            // Insertar un nuevo nodo con clave y valor
+            public void Insertar(TKey key, TValue value)
+            {
+                raiz = InsertarRecursivo(raiz, key, value);
+            }
+
+            private NodoBST<TKey, TValue> InsertarRecursivo(NodoBST<TKey, TValue> nodo, TKey key, TValue value)
+            {
+                if (nodo == null)
+                {
+                    return new NodoBST<TKey, TValue>(key, value);
+                }
+
+                int comparacion = key.CompareTo(nodo.Key);
+
+                if (comparacion < 0)
+                {
+                    nodo.Izquierdo = InsertarRecursivo(nodo.Izquierdo, key, value);
+                }
+                else if (comparacion > 0)
+                {
+                    nodo.Derecho = InsertarRecursivo(nodo.Derecho, key, value);
+                }
+                else
+                {
+                    // Si la clave ya existe, actualizamos el valor
+                    nodo.Value = value;
+                }
+
+                return nodo;
+            }
+
+            // Buscar un valor por clave
+            public TValue Buscar(TKey key)
+            {
+                var nodo = BuscarRecursivo(raiz, key);
+                if (nodo == null)
+                    throw new Exception("Clave no encontrada en el árbol");
+                return nodo.Value;
+            }
+
+            private NodoBST<TKey, TValue> BuscarRecursivo(NodoBST<TKey, TValue> nodo, TKey key)
+            {
+                if (nodo == null) return null;
+
+                int comparacion = key.CompareTo(nodo.Key);
+
+                if (comparacion == 0)
+                    return nodo;
+                else if (comparacion < 0)
+                    return BuscarRecursivo(nodo.Izquierdo, key);
+                else
+                    return BuscarRecursivo(nodo.Derecho, key);
+            }
+
+            // Eliminación de un nodo por clave
+            public void Eliminar(TKey key)
+            {
+                raiz = EliminarRecursivo(raiz, key);
+            }
+
+            private NodoBST<TKey, TValue> EliminarRecursivo(NodoBST<TKey, TValue> nodo, TKey key)
+            {
+                if (nodo == null) return null;
+
+                int comparacion = key.CompareTo(nodo.Key);
+
+                if (comparacion < 0)
+                {
+                    nodo.Izquierdo = EliminarRecursivo(nodo.Izquierdo, key);
+                }
+                else if (comparacion > 0)
+                {
+                    nodo.Derecho = EliminarRecursivo(nodo.Derecho, key);
+                }
+                else
+                {
+                    // Nodo encontrado
+                    if (nodo.Izquierdo == null && nodo.Derecho == null)
+                    {
+                        return null;
+                    }
+                    else if (nodo.Izquierdo == null)
+                    {
+                        return nodo.Derecho;
+                    }
+                    else if (nodo.Derecho == null)
+                    {
+                        return nodo.Izquierdo;
+                    }
+                    else
+                    {
+                        // Nodo con dos hijos: encontrar sucesor (mínimo del subárbol derecho)
+                        NodoBST<TKey, TValue> sucesor = EncontrarMinimo(nodo.Derecho);
+                        nodo.Key = sucesor.Key;
+                        nodo.Value = sucesor.Value;
+                        nodo.Derecho = EliminarRecursivo(nodo.Derecho, sucesor.Key);
+                    }
+                }
+                return nodo;
+            }
+
+            private NodoBST<TKey, TValue> EncontrarMinimo(NodoBST<TKey, TValue> nodo)
+            {
+                while (nodo.Izquierdo != null)
+                {
+                    nodo = nodo.Izquierdo;
+                }
+                return nodo;
+            }
+
+            // Recorrido In-Order (ordenado)
+            public void RecorrerInOrder(Action<TKey, TValue> accion)
+            {
+                RecorrerInOrderRecursivo(raiz, accion);
+            }
+
+            private void RecorrerInOrderRecursivo(NodoBST<TKey, TValue> nodo, Action<TKey, TValue> accion)
+            {
+                if (nodo == null) return;
+                RecorrerInOrderRecursivo(nodo.Izquierdo, accion);
+                accion(nodo.Key, nodo.Value);
+                RecorrerInOrderRecursivo(nodo.Derecho, accion);
+            }
+
+            // Recorrido Pre-Order
+            public void RecorrerPreOrder(Action<TKey, TValue> accion)
+            {
+                RecorrerPreOrderRecursivo(raiz, accion);
+            }
+
+            private void RecorrerPreOrderRecursivo(NodoBST<TKey, TValue> nodo, Action<TKey, TValue> accion)
+            {
+                if (nodo == null) return;
+                accion(nodo.Key, nodo.Value);
+                RecorrerPreOrderRecursivo(nodo.Izquierdo, accion);
+                RecorrerPreOrderRecursivo(nodo.Derecho, accion);
+            }
+
+            // Recorrido Post-Order
+            public void RecorrerPostOrder(Action<TKey, TValue> accion)
+            {
+                RecorrerPostOrderRecursivo(raiz, accion);
+            }
+
+            private void RecorrerPostOrderRecursivo(NodoBST<TKey, TValue> nodo, Action<TKey, TValue> accion)
+            {
+                if (nodo == null) return;
+                RecorrerPostOrderRecursivo(nodo.Izquierdo, accion);
+                RecorrerPostOrderRecursivo(nodo.Derecho, accion);
+                accion(nodo.Key, nodo.Value);
+            }
+
+            // Contar nodos
+            public int ContarNodos()
+            {
+                return ContarNodosRecursivo(raiz);
+            }
+
+            private int ContarNodosRecursivo(NodoBST<TKey, TValue> nodo)
+            {
+                if (nodo == null) return 0;
+                return 1 + ContarNodosRecursivo(nodo.Izquierdo) + ContarNodosRecursivo(nodo.Derecho);
+            }
+
+            // Obtener altura del árbol
+            public int Altura()
+            {
+                return AlturaRecursiva(raiz);
+            }
+
+            private int AlturaRecursiva(NodoBST<TKey, TValue> nodo)
+            {
+                if (nodo == null) return -1; // altura de árbol vacío es -1
+                int alturaIzq = AlturaRecursiva(nodo.Izquierdo);
+                int alturaDer = AlturaRecursiva(nodo.Derecho);
+                return 1 + Math.Max(alturaIzq, alturaDer);
+            }
+
+            // Verificar si el árbol está vacío
+            public bool EstaVacio()
+            {
+                return raiz == null;
+            }
+
+            // Limpiar el árbol
+            public void Limpiar()
+            {
+                raiz = null;
+            }
+        }
+    
+
+
+}

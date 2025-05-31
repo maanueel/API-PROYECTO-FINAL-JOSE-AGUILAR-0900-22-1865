@@ -1,0 +1,93 @@
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using ProyectoFinalProgramacionIII.Models;
+using ProyectoFinalProgramacionIII.Services;
+
+namespace ProyectoFinalProgramacionIII.ApiControllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ClienteController : ControllerBase
+    {
+        private readonly ClienteService clienteService;
+
+        public ClienteController(ClienteService clienteService)
+        {
+            this.clienteService = clienteService;
+        }
+
+        // GET api/cliente/{id}
+        [HttpGet("{id}")]  // id de tipo string
+        public ActionResult<Cliente> Get(string id)
+        {
+            try
+            {
+                var cliente = clienteService.ObtenerCliente(id);
+                if (cliente == null)
+                    return NotFound($"Cliente con ID '{id}' no encontrado.");
+                return Ok(cliente);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // POST api/cliente
+        [HttpPost]
+        public ActionResult Post([FromBody] Cliente cliente)
+        {
+            try
+            {
+                clienteService.CrearCliente(cliente);
+                return CreatedAtAction(nameof(Get), new { id = cliente.ClienteId }, cliente);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // PUT api/cliente/{id}
+        [HttpPut("{id}")]
+        public ActionResult Put(string id, [FromBody] Cliente clienteActualizado)
+        {
+            if (id != clienteActualizado.ClienteId)
+                return BadRequest("El ID del cliente no coincide.");
+
+            try
+            {
+                clienteService.ActualizarCliente(clienteActualizado);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // DELETE api/cliente/{id}
+        [HttpDelete("{id}")]
+        public ActionResult Delete(string id)
+        {
+            try
+            {
+                clienteService.EliminarCliente(id);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // GET api/cliente
+        [HttpGet]
+        public ActionResult<List<Cliente>> GetAll()
+        {
+            var clientes = clienteService.ListarClientes();
+            return Ok(clientes);
+        }
+    }
+}

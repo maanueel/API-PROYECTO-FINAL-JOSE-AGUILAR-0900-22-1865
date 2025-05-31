@@ -1,0 +1,172 @@
+using System;
+using System.Collections.Generic;
+using ProyectoFinalProgramacionIII.Models;
+using ProyectoFinalProgramacionIII.DataStructures;
+
+namespace ProyectoFinalProgramacionIII.Services
+{
+    public class TarjetaService
+    {
+        // Usaremos una Tabla Hash para acceder rápido a las tarjetas de crédito por número de tarjeta
+        private readonly TablaHash<string, TarjetaCredito> tarjetasHash;
+
+        public TarjetaService()
+        {
+            tarjetasHash = new TablaHash<string, TarjetaCredito>(100);
+        }
+
+        // Agregar una nueva tarjeta
+        public void AgregarTarjeta(TarjetaCredito tarjeta)
+        {
+            if (tarjeta == null || string.IsNullOrEmpty(tarjeta.NumeroTarjeta))
+                throw new ArgumentException("Tarjeta inválida.");
+
+            try
+            {
+                // Verificar si ya existe
+                tarjetasHash.Buscar(tarjeta.NumeroTarjeta);
+                throw new Exception("La tarjeta ya existe.");
+            }
+            catch (KeyNotFoundException)
+            {
+                tarjetasHash.Insertar(tarjeta.NumeroTarjeta, tarjeta);
+            }
+        }
+
+        // Obtener tarjeta por número
+        public TarjetaCredito ObtenerTarjeta(string numeroTarjeta)
+        {
+            if (string.IsNullOrEmpty(numeroTarjeta))
+                throw new ArgumentException("Número de tarjeta inválido.");
+
+            return tarjetasHash.Buscar(numeroTarjeta);
+        }
+
+        // Actualizar datos de tarjeta
+        public void ActualizarTarjeta(TarjetaCredito tarjetaActualizada)
+        {
+            if (tarjetaActualizada == null || string.IsNullOrEmpty(tarjetaActualizada.NumeroTarjeta))
+                throw new ArgumentException("Tarjeta inválida.");
+
+            tarjetasHash.Insertar(tarjetaActualizada.NumeroTarjeta, tarjetaActualizada);
+        }
+
+        // Bloquear tarjeta temporalmente
+        public void BloquearTarjeta(string numeroTarjeta)
+        {
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            tarjeta.EstaBloqueada = true;
+            ActualizarTarjeta(tarjeta);
+        }
+
+        // Desbloquear tarjeta
+        public void DesbloquearTarjeta(string numeroTarjeta)
+        {
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            tarjeta.EstaBloqueada = false;
+            ActualizarTarjeta(tarjeta);
+        }
+
+        // Consultar saldo
+        public decimal ConsultarSaldo(string numeroTarjeta)
+        {
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            return tarjeta.Saldo;
+        }
+
+        // Realizar pago (disminuye saldo)
+        public void RealizarPago(string numeroTarjeta, decimal monto)
+        {
+            if (monto <= 0)
+                throw new ArgumentException("Monto debe ser positivo.");
+
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            tarjeta.Saldo -= monto;
+            if (tarjeta.Saldo < 0)
+                tarjeta.Saldo = 0;
+            ActualizarTarjeta(tarjeta);
+
+            // Registrar transacción
+            var transaccion = new Transaccion
+            {
+                TransaccionId = Guid.NewGuid().ToString(),
+                NumeroTarjeta = numeroTarjeta,
+                Monto = monto,
+                Fecha = DateTime.Now,
+                Tipo = "Pago",
+                Estado = "Aprobada"
+            };
+            tarjeta.Movimientos.AddLast(transaccion); // Usar AddLast para agregar a LinkedList
+        }
+
+        // Realizar consumo (aumenta saldo, verificar límite crédito)
+        public void RealizarConsumo(string numeroTarjeta, decimal monto)
+        {
+            if (monto <= 0)
+                throw new ArgumentException("Monto debe ser positivo.");
+
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            if (tarjeta.Saldo + monto > tarjeta.LimiteCredito)
+                throw new InvalidOperationException("Límite de crédito excedido.");
+
+            tarjeta.Saldo += monto;
+            ActualizarTarjeta(tarjeta);
+
+            var transaccion = new Transaccion
+            {
+                TransaccionId = Guid.NewGuid().ToString(),
+                NumeroTarjeta = numeroTarjeta,
+                Monto = monto,
+                Fecha = DateTime.Now,
+                Tipo = "Consumo",
+                Estado = "Aprobada"
+            };
+            tarjeta.Movimientos.AddLast(transaccion); // Usar AddLast para agregar a LinkedList
+        }
+
+        // Consultar movimientos (histórico completo)
+        public List<Transaccion> ConsultarMovimientos(string numeroTarjeta)
+        {
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            var listado = new List<Transaccion>();
+            foreach (var transaccion in tarjeta.Movimientos)
+            {
+                listado.Add(transaccion);
+            }
+            return listado;
+        }
+
+        // Renovar tarjeta (actualiza la fecha de expiración)
+        public void RenovarTarjeta(string numeroTarjeta, DateTime nuevaFechaExpiracion)
+        {
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            tarjeta.FechaExpiracion = nuevaFechaExpiracion;
+            ActualizarTarjeta(tarjeta);
+        }
+
+        // Cambiar PIN
+        public void CambiarPin(string numeroTarjeta, string nuevoPin)
+        {
+            if (string.IsNullOrEmpty(nuevoPin))
+                throw new ArgumentException("Pin inválido.");
+
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            tarjeta.Pin = nuevoPin;
+            ActualizarTarjeta(tarjeta);
+        }
+
+        // Solicitud de aumento de limite de crédito
+        public void SolicitarAumentoLimite(string numeroTarjeta, decimal nuevoLimite)
+        {
+            if (nuevoLimite <= 0)
+                throw new ArgumentException("Nuevo límite inválido.");
+
+            var tarjeta = ObtenerTarjeta(numeroTarjeta);
+            if (nuevoLimite <= tarjeta.LimiteCredito)
+                throw new InvalidOperationException("El nuevo límite debe ser mayor al actual.");
+
+            tarjeta.LimiteCredito = nuevoLimite;
+            ActualizarTarjeta(tarjeta);
+        }
+    }
+}

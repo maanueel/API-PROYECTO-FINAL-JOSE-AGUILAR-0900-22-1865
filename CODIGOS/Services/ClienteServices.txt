@@ -1,0 +1,73 @@
+using System;
+using System.Collections.Generic;
+using ProyectoFinalProgramacionIII.Models;
+using ProyectoFinalProgramacionIII.DataStructures;
+
+namespace ProyectoFinalProgramacionIII.Services
+{
+    public class ClienteService
+    {
+        // Usaremos un Árbol Binario de Búsqueda para almacenar clientes por su ClienteId
+        private readonly ArbolBinarioBusqueda<string, Cliente> clientesBST;
+
+        public ClienteService()
+        {
+            clientesBST = new ArbolBinarioBusqueda<string, Cliente>();
+        }
+
+        // Crear un cliente
+        public void CrearCliente(Cliente nuevoCliente)
+        {
+            if (nuevoCliente == null || string.IsNullOrEmpty(nuevoCliente.ClienteId))
+                throw new ArgumentException("Cliente o ClienteId inválido.");
+
+            try
+            {
+                clientesBST.Buscar(nuevoCliente.ClienteId);
+                throw new Exception("El cliente ya existe.");
+            }
+            catch (Exception)
+            {
+                clientesBST.Insertar(nuevoCliente.ClienteId, nuevoCliente);
+            }
+        }
+
+        // Obtener un cliente por ClienteId
+        public Cliente ObtenerCliente(string clienteId)
+        {
+            if (string.IsNullOrEmpty(clienteId))
+                throw new ArgumentException("ClienteId inválido.");
+
+            return clientesBST.Buscar(clienteId);
+        }
+
+        // Actualizar datos de cliente
+        public void ActualizarCliente(Cliente clienteActualizado)
+        {
+            if (clienteActualizado == null || string.IsNullOrEmpty(clienteActualizado.ClienteId))
+                throw new ArgumentException("Cliente o ClienteId inválido.");
+
+            clientesBST.Insertar(clienteActualizado.ClienteId, clienteActualizado);
+        }
+
+        // Eliminar cliente por ClienteId
+        public void EliminarCliente(string clienteId)
+        {
+            if (string.IsNullOrEmpty(clienteId))
+                throw new ArgumentException("ClienteId inválido.");
+
+            clientesBST.Eliminar(clienteId);
+        }
+
+        // Listar todos los clientes (retorna lista)
+        public List<Cliente> ListarClientes()
+        {
+            var lista = new List<Cliente>();
+            clientesBST.RecorrerInOrder((key, cliente) =>
+            {
+                lista.Add(cliente);
+            });
+            return lista;
+        }
+    }
+}

@@ -1,0 +1,312 @@
+
+    using System;
+
+    namespace ProyectoFinalProgramacionIII.DataStructures
+    {
+        // Nodo del árbol AVL
+        public class NodoAVL<TKey, TValue> where TKey : IComparable<TKey>
+        {
+            public TKey Key { get; set; }
+            public TValue Value { get; set; }
+            public NodoAVL<TKey, TValue> Izquierdo { get; set; }
+            public NodoAVL<TKey, TValue> Derecho { get; set; }
+            public int Altura { get; set; }
+
+            public NodoAVL(TKey key, TValue value)
+            {
+                Key = key;
+                Value = value;
+                Izquierdo = null;
+                Derecho = null;
+                Altura = 1;
+            }
+        }
+
+        // Árbol AVL genérico
+        public class ArbolAVL<TKey, TValue> where TKey : IComparable<TKey>
+        {
+            private NodoAVL<TKey, TValue> raiz;
+
+            public ArbolAVL()
+            {
+                raiz = null;
+            }
+
+            // Obtener la altura de un nodo
+            private int Altura(NodoAVL<TKey, TValue> nodo)
+            {
+                return nodo?.Altura ?? 0;
+            }
+
+            // Obtener el factor de balance
+            private int ObtenerBalance(NodoAVL<TKey, TValue> nodo)
+            {
+                if (nodo == null) return 0;
+                return Altura(nodo.Izquierdo) - Altura(nodo.Derecho);
+            }
+
+            // Rotación a la derecha
+            private NodoAVL<TKey, TValue> RotarDerecha(NodoAVL<TKey, TValue> y)
+            {
+                var x = y.Izquierdo;
+                var T2 = x.Derecho;
+
+                // Realizar rotación
+                x.Derecho = y;
+                y.Izquierdo = T2;
+
+                // Actualizar alturas
+                y.Altura = Math.Max(Altura(y.Izquierdo), Altura(y.Derecho)) + 1;
+                x.Altura = Math.Max(Altura(x.Izquierdo), Altura(x.Derecho)) + 1;
+
+                // Nueva raíz
+                return x;
+            }
+
+            // Rotación a la izquierda
+            private NodoAVL<TKey, TValue> RotarIzquierda(NodoAVL<TKey, TValue> x)
+            {
+                var y = x.Derecho;
+                var T2 = y.Izquierdo;
+
+                // Realizar rotación
+                y.Izquierdo = x;
+                x.Derecho = T2;
+
+                // Actualizar alturas
+                x.Altura = Math.Max(Altura(x.Izquierdo), Altura(x.Derecho)) + 1;
+                y.Altura = Math.Max(Altura(y.Izquierdo), Altura(y.Derecho)) + 1;
+
+                // Nueva raíz
+                return y;
+            }
+
+            // Insertar nodo
+            public void Insertar(TKey key, TValue value)
+            {
+                raiz = InsertarRec(raiz, key, value);
+            }
+
+            private NodoAVL<TKey, TValue> InsertarRec(NodoAVL<TKey, TValue> nodo, TKey key, TValue value)
+            {
+                // Insertar como en BST
+                if (nodo == null) return new NodoAVL<TKey, TValue>(key, value);
+
+                int cmp = key.CompareTo(nodo.Key);
+                if (cmp < 0)
+                    nodo.Izquierdo = InsertarRec(nodo.Izquierdo, key, value);
+                else if (cmp > 0)
+                    nodo.Derecho = InsertarRec(nodo.Derecho, key, value);
+                else
+                {
+                    // Clave duplicada: actualizar valor
+                    nodo.Value = value;
+                    return nodo;
+                }
+
+                // Actualizar altura del nodo ancestro
+                nodo.Altura = 1 + Math.Max(Altura(nodo.Izquierdo), Altura(nodo.Derecho));
+
+                // Obtener factor de balance
+                int balance = ObtenerBalance(nodo);
+
+                // Caso Left Left
+                if (balance > 1 && key.CompareTo(nodo.Izquierdo.Key) < 0)
+                    return RotarDerecha(nodo);
+
+                // Caso Right Right
+                if (balance < -1 && key.CompareTo(nodo.Derecho.Key) > 0)
+                    return RotarIzquierda(nodo);
+
+                // Caso Left Right
+                if (balance > 1 && key.CompareTo(nodo.Izquierdo.Key) > 0)
+                {
+                    nodo.Izquierdo = RotarIzquierda(nodo.Izquierdo);
+                    return RotarDerecha(nodo);
+                }
+
+                // Caso Right Left
+                if (balance < -1 && key.CompareTo(nodo.Derecho.Key) < 0)
+                {
+                    nodo.Derecho = RotarDerecha(nodo.Derecho);
+                    return RotarIzquierda(nodo);
+                }
+
+                return nodo;
+            }
+
+            // Buscar un valor por clave
+            public TValue Buscar(TKey key)
+            {
+                var nodo = BuscarRec(raiz, key);
+                if (nodo == null) throw new Exception("Clave no encontrada en el árbol");
+                return nodo.Value;
+            }
+
+            private NodoAVL<TKey, TValue> BuscarRec(NodoAVL<TKey, TValue> nodo, TKey key)
+            {
+                if (nodo == null) return null;
+                int cmp = key.CompareTo(nodo.Key);
+                if (cmp == 0) return nodo;
+                else if (cmp < 0) return BuscarRec(nodo.Izquierdo, key);
+                else return BuscarRec(nodo.Derecho, key);
+            }
+
+            // Eliminar nodo
+            public void Eliminar(TKey key)
+            {
+                raiz = EliminarRec(raiz, key);
+            }
+
+            private NodoAVL<TKey, TValue> EliminarRec(NodoAVL<TKey, TValue> nodo, TKey key)
+            {
+                if (nodo == null) return nodo;
+
+                int cmp = key.CompareTo(nodo.Key);
+
+                if (cmp < 0)
+                    nodo.Izquierdo = EliminarRec(nodo.Izquierdo, key);
+                else if (cmp > 0)
+                    nodo.Derecho = EliminarRec(nodo.Derecho, key);
+                else
+                {
+                    // nodo a eliminar encontrado
+                    if (nodo.Izquierdo == null || nodo.Derecho == null)
+                    {
+                        NodoAVL<TKey, TValue> temp = nodo.Izquierdo ?? nodo.Derecho;
+
+                        if (temp == null)
+                        {
+                            // sin hijos
+                            nodo = null;
+                        }
+                        else
+                        {
+                            nodo = temp;
+                        }
+                    }
+                    else
+                    {
+                        // nodo con dos hijos: buscar sucesor inorden (mínimo del subárbol derecho)
+                        NodoAVL<TKey, TValue> temp = MinimoNodo(nodo.Derecho);
+                        nodo.Key = temp.Key;
+                        nodo.Value = temp.Value;
+                        nodo.Derecho = EliminarRec(nodo.Derecho, temp.Key);
+                    }
+                }
+
+                if (nodo == null)
+                    return null;
+
+                // actualizar altura
+                nodo.Altura = 1 + Math.Max(Altura(nodo.Izquierdo), Altura(nodo.Derecho));
+
+                // balancear
+                int balance = ObtenerBalance(nodo);
+
+                // Left Left
+                if (balance > 1 && ObtenerBalance(nodo.Izquierdo) >= 0)
+                    return RotarDerecha(nodo);
+
+                // Left Right
+                if (balance > 1 && ObtenerBalance(nodo.Izquierdo) < 0)
+                {
+                    nodo.Izquierdo = RotarIzquierda(nodo.Izquierdo);
+                    return RotarDerecha(nodo);
+                }
+
+                // Right Right
+                if (balance < -1 && ObtenerBalance(nodo.Derecho) <= 0)
+                    return RotarIzquierda(nodo);
+
+                // Right Left
+                if (balance < -1 && ObtenerBalance(nodo.Derecho) > 0)
+                {
+                    nodo.Derecho = RotarDerecha(nodo.Derecho);
+                    return RotarIzquierda(nodo);
+                }
+
+                return nodo;
+            }
+
+            private NodoAVL<TKey, TValue> MinimoNodo(NodoAVL<TKey, TValue> nodo)
+            {
+                NodoAVL<TKey, TValue> actual = nodo;
+                while (actual.Izquierdo != null)
+                    actual = actual.Izquierdo;
+                return actual;
+            }
+
+            // Recorrido In-Order
+            public void RecorrerInOrder(Action<TKey, TValue> accion)
+            {
+                RecorrerInOrderRec(raiz, accion);
+            }
+
+            private void RecorrerInOrderRec(NodoAVL<TKey, TValue> nodo, Action<TKey, TValue> accion)
+            {
+                if (nodo == null) return;
+                RecorrerInOrderRec(nodo.Izquierdo, accion);
+                accion(nodo.Key, nodo.Value);
+                RecorrerInOrderRec(nodo.Derecho, accion);
+            }
+
+            // Recorrido Pre-Order
+            public void RecorrerPreOrder(Action<TKey, TValue> accion)
+            {
+                RecorrerPreOrderRec(raiz, accion);
+            }
+
+            private void RecorrerPreOrderRec(NodoAVL<TKey, TValue> nodo, Action<TKey, TValue> accion)
+            {
+                if (nodo == null) return;
+                accion(nodo.Key, nodo.Value);
+                RecorrerPreOrderRec(nodo.Izquierdo, accion);
+                RecorrerPreOrderRec(nodo.Derecho, accion);
+            }
+
+            // Recorrido Post-Order
+            public void RecorrerPostOrder(Action<TKey, TValue> accion)
+            {
+                RecorrerPostOrderRec(raiz, accion);
+            }
+
+            private void RecorrerPostOrderRec(NodoAVL<TKey, TValue> nodo, Action<TKey, TValue> accion)
+            {
+                if (nodo == null) return;
+                RecorrerPostOrderRec(nodo.Izquierdo, accion);
+                RecorrerPostOrderRec(nodo.Derecho, accion);
+                accion(nodo.Key, nodo.Value);
+            }
+
+            // Contar nodos
+            public int ContarNodos()
+            {
+                return ContarNodosRecursivo(raiz);
+            }
+
+            private int ContarNodosRecursivo(NodoAVL<TKey, TValue> nodo)
+            {
+                if (nodo == null) return 0;
+                return 1 + ContarNodosRecursivo(nodo.Izquierdo) + ContarNodosRecursivo(nodo.Derecho);
+            }
+
+            // Obtener altura del árbol
+            public int AlturaArbol()
+            {
+                return Altura(raiz);
+            }
+
+            // Verificar si el árbol está vacío
+            public bool EstaVacio()
+            {
+                return raiz == null;
+            }
+
+            // Limpiar el árbol
+            public void Limpiar()
+            {
+                raiz = null;
+            }
+        }
+    }

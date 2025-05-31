@@ -1,0 +1,73 @@
+using System;
+using ProyectoFinalProgramacionIII.Models;
+using ProyectoFinalProgramacionIII.Services;
+
+namespace ProyectoFinalProgramacionIII.Services
+{
+    public class CargaInicialService
+    {
+        private readonly ClienteService clienteService;
+        private readonly TarjetaService tarjetaService;
+
+        public CargaInicialService(ClienteService clienteService, TarjetaService tarjetaService)
+        {
+            this.clienteService = clienteService ?? throw new ArgumentNullException(nameof(clienteService));
+            this.tarjetaService = tarjetaService ?? throw new ArgumentNullException(nameof(tarjetaService));
+        }
+
+        // Método para cargar datos iniciales directamente en código, sin archivo externo
+        public void CargarDatosIniciales()
+        {
+            var cliente1 = new Cliente
+            {
+                ClienteId = "C001",
+                Nombre = "Juan",
+                Apellido = "Perez",
+                Email = "juan.perez@email.com",
+                Telefono = "555-1234",
+                Direccion = "Calle Falsa 123",
+                Tarjeta = new TarjetaCredito
+                {
+                    NumeroTarjeta = "1234567890123456",
+                    ClienteId = "C001",
+                    Saldo = 1500.00m,
+                    Pin = "1111",
+                    FechaExpiracion = new DateTime(2025, 12, 31),
+                    EstaBloqueada = false,
+                    LimiteCredito = 5000.00m,
+                    // Inicializar estructuras de datos vacías
+                    Movimientos = new System.Collections.Generic.LinkedList<Transaccion>(),
+                    HistorialReciente = new System.Collections.Generic.Stack<Transaccion>(),
+                }
+            };
+
+            var cliente2 = new Cliente
+            {
+                ClienteId = "C002",
+                Nombre = "Maria",
+                Apellido = "Gomez",
+                Email = "maria.gomez@email.com",
+                Telefono = "555-5678",
+                Direccion = "Avenida Siempre Viva 456",
+                Tarjeta = new TarjetaCredito
+                {
+                    NumeroTarjeta = "6543210987654321",
+                    ClienteId = "C002",
+                    Saldo = 500.00m,
+                    Pin = "2222",
+                    FechaExpiracion = new DateTime(2024, 6, 30),
+                    EstaBloqueada = false,
+                    LimiteCredito = 3000.00m,
+                    Movimientos = new System.Collections.Generic.LinkedList<Transaccion>(),
+                    HistorialReciente = new System.Collections.Generic.Stack<Transaccion>(),
+                }
+            };
+
+            clienteService.CrearCliente(cliente1);
+            clienteService.CrearCliente(cliente2);
+
+            tarjetaService.AgregarTarjeta(cliente1.Tarjeta);
+            tarjetaService.AgregarTarjeta(cliente2.Tarjeta);
+        }
+    }
+}

@@ -1,0 +1,83 @@
+using System;
+using System.Collections.Generic;
+using ProyectoFinalProgramacionIII.Models;
+using ProyectoFinalProgramacionIII.DataStructures;
+
+namespace ProyectoFinalProgramacionIII.Services
+{
+    public class TransaccionService
+    {
+        // Usaremos una cola para procesar transacciones pendientes
+        private readonly Cola<Transaccion> transaccionesPendientes;
+
+        // También un árbol AVL para almacenar todas las transacciones procesadas por ID para búsquedas eficientes
+        private readonly ArbolAVL<string, Transaccion> transaccionesProcesadas;
+
+        public TransaccionService()
+        {
+            transaccionesPendientes = new Cola<Transaccion>();
+            transaccionesProcesadas = new ArbolAVL<string, Transaccion>();
+        }
+
+        // Añadir nueva transacción pendiente a la cola
+        public void AgregarTransaccionPendiente(Transaccion transaccion)
+        {
+            if (transaccion == null)
+                throw new ArgumentException("Transacción inválida.");
+
+            transaccion.Estado = "Pendiente";
+            transaccionesPendientes.Enqueue(transaccion);
+        }
+
+        // Procesar la siguiente transacción pendiente (simulación de autorización)
+        public void ProcesarSiguienteTransaccion()
+        {
+            if (transaccionesPendientes.EstaVacia())
+                throw new InvalidOperationException("No hay transacciones pendientes para procesar.");
+
+            Transaccion transaccion = transaccionesPendientes.Dequeue();
+
+            // Simulamos autorización
+            transaccion.Estado = "Aprobada";
+            transaccion.Fecha = DateTime.Now;
+
+            // Guardar en árbol AVL para búsqueda posterior
+            transaccionesProcesadas.Insertar(transaccion.TransaccionId, transaccion);
+        }
+
+        // Consultar transacción procesada por ID
+        public Transaccion ObtenerTransaccion(string transaccionId)
+        {
+            if (string.IsNullOrEmpty(transaccionId))
+                throw new ArgumentException("ID de transacción inválido.");
+
+            return transaccionesProcesadas.Buscar(transaccionId);
+        }
+
+        // Listar todas las transacciones procesadas
+        public List<Transaccion> ListarTransaccionesProcesadas()
+        {
+            var lista = new List<Transaccion>();
+            transaccionesProcesadas.RecorrerInOrder((key, transaccion) =>
+            {
+                lista.Add(transaccion);
+            });
+            return lista;
+        }
+
+        // Verificar si hay transacciones pendientes
+        public bool HayTransaccionesPendientes()
+        {
+            return !transaccionesPendientes.EstaVacia();
+        }
+
+        // Limpiar todas las transacciones (pendientes y procesadas)
+        public void Limpiar()
+        {
+            while (!transaccionesPendientes.EstaVacia())
+                transaccionesPendientes.Dequeue();
+
+            transaccionesProcesadas.Limpiar();
+        }
+    }
+}

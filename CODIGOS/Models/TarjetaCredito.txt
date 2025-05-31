@@ -1,0 +1,22 @@
+using System;
+using System.Collections.Generic;
+using System.Transactions;
+
+namespace ProyectoFinalProgramacionIII.Models
+{
+    public class TarjetaCredito
+    {
+
+        public string NumeroTarjeta { get; set; }
+        public string ClienteId { get; set; }
+        public decimal Saldo { get; set; }
+        public string Pin { get; set; }
+        public DateTime FechaExpiracion { get; set; }
+        public bool EstaBloqueada { get; set; }
+        public decimal LimiteCredito { get; set; }
+        // Lista enlazada para los movimientos históricos (compras, pagos, etc.)
+        public LinkedList<Transaccion> Movimientos { get; set; } = new LinkedList<Transaccion>();
+        // Pila para el historial reciente de operaciones realizadas (últimas transacciones)
+        public Stack<Transaccion> HistorialReciente { get; set; } = new Stack<Transaccion>();
+    }
+}

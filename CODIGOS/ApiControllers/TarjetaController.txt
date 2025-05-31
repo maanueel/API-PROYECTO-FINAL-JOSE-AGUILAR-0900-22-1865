@@ -1,0 +1,185 @@
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using ProyectoFinalProgramacionIII.Models;
+using ProyectoFinalProgramacionIII.Services;
+
+namespace ProyectoFinalProgramacionIII.ApiControllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class TarjetaController : ControllerBase
+    {
+        private readonly TarjetaService tarjetaService;
+
+        public TarjetaController(TarjetaService tarjetaService)
+        {
+            this.tarjetaService = tarjetaService;
+        }
+
+        // GET api/tarjeta/{numeroTarjeta}
+        [HttpGet("{numeroTarjeta}")]
+        public ActionResult<TarjetaCredito> Get(string numeroTarjeta)
+        {
+            try
+            {
+                var tarjeta = tarjetaService.ObtenerTarjeta(numeroTarjeta);
+                return Ok(tarjeta);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // POST api/tarjeta
+        [HttpPost]
+        public ActionResult Post([FromBody] TarjetaCredito tarjeta)
+        {
+            try
+            {
+                tarjetaService.AgregarTarjeta(tarjeta);
+                return CreatedAtAction(nameof(Get), new { numeroTarjeta = tarjeta.NumeroTarjeta }, tarjeta);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // PUT api/tarjeta/{numeroTarjeta}/bloquear
+        [HttpPut("{numeroTarjeta}/bloquear")]
+        public ActionResult Bloquear(string numeroTarjeta)
+        {
+            try
+            {
+                tarjetaService.BloquearTarjeta(numeroTarjeta);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // PUT api/tarjeta/{numeroTarjeta}/desbloquear
+        [HttpPut("{numeroTarjeta}/desbloquear")]
+        public ActionResult Desbloquear(string numeroTarjeta)
+        {
+            try
+            {
+                tarjetaService.DesbloquearTarjeta(numeroTarjeta);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // GET api/tarjeta/{numeroTarjeta}/saldo
+        [HttpGet("{numeroTarjeta}/saldo")]
+        public ActionResult<decimal> ConsultarSaldo(string numeroTarjeta)
+        {
+            try
+            {
+                var saldo = tarjetaService.ConsultarSaldo(numeroTarjeta);
+                return Ok(saldo);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // POST api/tarjeta/{numeroTarjeta}/pago
+        [HttpPost("{numeroTarjeta}/pago")]
+        public ActionResult RealizarPago(string numeroTarjeta, [FromBody] decimal monto)
+        {
+            try
+            {
+                tarjetaService.RealizarPago(numeroTarjeta, monto);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // POST api/tarjeta/{numeroTarjeta}/consumo
+        [HttpPost("{numeroTarjeta}/consumo")]
+        public ActionResult RealizarConsumo(string numeroTarjeta, [FromBody] decimal monto)
+        {
+            try
+            {
+                tarjetaService.RealizarConsumo(numeroTarjeta, monto);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // GET api/tarjeta/{numeroTarjeta}/movimientos
+        [HttpGet("{numeroTarjeta}/movimientos")]
+        public ActionResult<List<Transaccion>> ConsultarMovimientos(string numeroTarjeta)
+        {
+            try
+            {
+                var movimientos = tarjetaService.ConsultarMovimientos(numeroTarjeta);
+                return Ok(movimientos);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // PUT api/tarjeta/{numeroTarjeta}/renovar
+        [HttpPut("{numeroTarjeta}/renovar")]
+        public ActionResult RenovarTarjeta(string numeroTarjeta, [FromBody] DateTime nuevaFechaExpiracion)
+        {
+            try
+            {
+                tarjetaService.RenovarTarjeta(numeroTarjeta, nuevaFechaExpiracion);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // PUT api/tarjeta/{numeroTarjeta}/cambiarpin
+        [HttpPut("{numeroTarjeta}/cambiarpin")]
+        public ActionResult CambiarPin(string numeroTarjeta, [FromBody] string nuevoPin)
+        {
+            try
+            {
+                tarjetaService.CambiarPin(numeroTarjeta, nuevoPin);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // POST api/tarjeta/{numeroTarjeta}/aumentolimit
+        [HttpPost("{numeroTarjeta}/aumentolimit")]
+        public ActionResult SolicitarAumentoLimite(string numeroTarjeta, [FromBody] decimal nuevoLimite)
+        {
+            try
+            {
+                tarjetaService.SolicitarAumentoLimite(numeroTarjeta, nuevoLimite);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+    }
+}

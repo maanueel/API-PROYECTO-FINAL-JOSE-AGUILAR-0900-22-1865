@@ -1,0 +1,116 @@
+using System;
+
+namespace ProyectoFinalProgramacionIII.DataStructures
+{
+    // Nodo de una lista enlazada genérica
+    public class NodoLista<T>
+    {
+        public T Dato { get; set; }
+        public NodoLista<T> Siguiente { get; set; }
+
+        public NodoLista(T dato)
+        {
+            Dato = dato;
+            Siguiente = null;
+        }
+    }
+
+    // Implementación de lista enlazada simple
+    public class ListaEnlazada<T>
+    {
+        private NodoLista<T> cabeza;
+        private NodoLista<T> cola;
+        private int contador;
+
+        public ListaEnlazada()
+        {
+            cabeza = null;
+            cola = null;
+            contador = 0;
+        }
+
+        // Añade un elemento al final de la lista
+        public void Agregar(T dato)
+        {
+            var nuevoNodo = new NodoLista<T>(dato);
+            if (cabeza == null)
+            {
+                cabeza = nuevoNodo;
+                cola = nuevoNodo;
+            }
+            else
+            {
+                cola.Siguiente = nuevoNodo;
+                cola = nuevoNodo;
+            }
+            contador++;
+        }
+
+        // Elimina la primera aparición del elemento indicado
+        public bool Eliminar(T dato)
+        {
+            NodoLista<T> actual = cabeza;
+            NodoLista<T> anterior = null;
+
+            while (actual != null)
+            {
+                if (actual.Dato.Equals(dato))
+                {
+                    if (anterior == null)
+                    {
+                        cabeza = actual.Siguiente;
+                        if (cabeza == null) cola = null;
+                    }
+                    else
+                    {
+                        anterior.Siguiente = actual.Siguiente;
+                        if (actual == cola) cola = anterior;
+                    }
+                    contador--;
+                    return true;
+                }
+                anterior = actual;
+                actual = actual.Siguiente;
+            }
+            return false;
+        }
+
+        // Busca si un elemento está en la lista
+        public bool Contiene(T dato)
+        {
+            NodoLista<T> actual = cabeza;
+            while (actual != null)
+            {
+                if (actual.Dato.Equals(dato))
+                    return true;
+                actual = actual.Siguiente;
+            }
+            return false;
+        }
+
+        // Devuelve la cantidad de elementos en la lista
+        public int Count()
+        {
+            return contador;
+        }
+
+        // Limpia la lista
+        public void Limpiar()
+        {
+            cabeza = null;
+            cola = null;
+            contador = 0;
+        }
+
+        // Recorre la lista y ejecuta una acción por cada elemento
+        public void Recorrer(Action<T> accion)
+        {
+            NodoLista<T> actual = cabeza;
+            while (actual != null)
+            {
+                accion(actual.Dato);
+                actual = actual.Siguiente;
+            }
+        }
+    }
+}

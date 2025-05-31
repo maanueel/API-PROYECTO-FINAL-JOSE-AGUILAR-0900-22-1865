@@ -1,0 +1,61 @@
+using System;
+using System.Collections.Generic;
+
+namespace ProyectoFinalProgramacionIII.DataStructures
+{
+    // Implementación de cola genérica
+    public class Cola<T>
+    {
+        private readonly LinkedList<T> elementos;
+
+        public Cola()
+        {
+            elementos = new LinkedList<T>();
+        }
+
+        // Agrega un elemento al final de la cola
+        public void Enqueue(T elemento)
+        {
+            elementos.AddLast(elemento);
+        }
+
+        // Remueve y devuelve el elemento al frente de la cola
+        public T Dequeue()
+        {
+            if (EstaVacia())
+                throw new InvalidOperationException("La cola está vacía");
+
+            T valor = elementos.First.Value;
+            elementos.RemoveFirst();
+            return valor;
+        }
+
+        // Devuelve el elemento al frente sin removerlo
+        public T Peek()
+        {
+            if (EstaVacia())
+                throw new InvalidOperationException("La cola está vacía");
+
+            return elementos.First.Value;
+        }
+
+        // Indica si la cola está vacía
+        public bool EstaVacia()
+        {
+            return elementos.Count == 0;
+        }
+
+        // Devuelve el número de elementos en la cola
+        public int Count()
+        {
+            return elementos.Count;
+        }
+
+        // Limpia la cola
+        public void Limpiar()
+        {
+            elementos.Clear();
+        }
+    }
+}
+

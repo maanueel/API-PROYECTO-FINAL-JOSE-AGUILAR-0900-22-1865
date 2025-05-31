@@ -1,0 +1,94 @@
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using ProyectoFinalProgramacionIII.Models;
+using ProyectoFinalProgramacionIII.Services;
+
+namespace ProyectoFinalProgramacionIII.ApiControllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class TransaccionController : ControllerBase
+    {
+        private readonly TransaccionService transaccionService;
+
+        public TransaccionController(TransaccionService transaccionService)
+        {
+            this.transaccionService = transaccionService;
+        }
+
+        // POST api/transaccion/pendiente
+        [HttpPost("pendiente")]
+        public ActionResult AgregarTransaccionPendiente([FromBody] Transaccion transaccion)
+        {
+            try
+            {
+                transaccionService.AgregarTransaccionPendiente(transaccion);
+                return Accepted();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // POST api/transaccion/procesar
+        [HttpPost("procesar")]
+        public ActionResult ProcesarSiguienteTransaccion()
+        {
+            try
+            {
+                transaccionService.ProcesarSiguienteTransaccion();
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // GET api/transaccion/{id}
+        [HttpGet("{id}")]
+        public ActionResult<Transaccion> ObtenerTransaccion(string id)
+        {
+            try
+            {
+                var transaccion = transaccionService.ObtenerTransaccion(id);
+                return Ok(transaccion);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // GET api/transaccion
+        [HttpGet]
+        public ActionResult<List<Transaccion>> ListarTransaccionesProcesadas()
+        {
+            try
+            {
+                var lista = transaccionService.ListarTransaccionesProcesadas();
+                return Ok(lista);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // GET api/transaccion/pendientes/existen
+        [HttpGet("pendientes/existen")]
+        public ActionResult<bool> HayTransaccionesPendientes()
+        {
+            try
+            {
+                return Ok(transaccionService.HayTransaccionesPendientes());
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+    }
+}
